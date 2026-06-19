@@ -38,6 +38,16 @@ jobs:
         env:
           DO_NOT_TRACK: 1
 
+      - name: Rename Release Assets to include master
+        if: ${{ steps.vars.outputs.should_release == 'true' }}
+        shell: bash
+        run: |
+          for f in release/*.tar.gz; do
+            newname=$(echo "$f" | sed 's/-linux-/-master-linux-/; s/-darwin-/-master-darwin-/')
+            mv "$f" "$newname"
+          done
+          ls -la release/
+
       - name: Delete the "latest" Release
         if: ${{ steps.vars.outputs.is_release_type_latest == 'true' }}
         run: |
