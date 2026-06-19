@@ -1,0 +1,17 @@
+syntax = "proto3";
+package nebula.nebula;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "nebula/nebula/params.proto";
+
+option go_package = "nebula/x/nebula/types";
+
+// GenesisState defines the nebula module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
