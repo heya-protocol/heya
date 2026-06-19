@@ -1,51 +1,37 @@
-# heya
-**heya** is a blockchain built using Cosmos SDK and Tendermint and created with [Ignite CLI](https://ignite.com/cli).
+# Heya Blockchain
 
-## Get started
+**heya** is a Cosmos SDK-based blockchain (v0.50.15) with IBC-go v8.8.0, CosmWasm v0.54.8, and CometBFT v0.38.23.
 
-```
-ignite chain serve
-```
+## Tokenomics
 
-`serve` command installs dependencies, builds, initializes, and starts your blockchain in development.
+| Parametr | Wartość |
+|---|---|
+| Chain ID | `heya-1` |
+| Denom | `uheya` (1 HEYA = 1,000,000 uheya) |
+| Max supply | 10,000,000,000 HEYA |
+| Initial supply | 5,000,000,000 HEYA |
+| Inflation | ~13% rocznie |
+| Bech32 prefix | `heya` |
 
-### Configure
+## Endpoints (mainnet)
 
-Your blockchain in development can be configured with `config.yml`. To learn more, see the [Ignite CLI docs](https://docs.ignite.com).
+| Service | Address |
+|---|---|
+| RPC | `http://178.63.164.6:26657` |
+| gRPC | `178.63.164.6:9090` |
+| REST API | `http://178.63.164.6:1317` |
+| P2P | `178.63.164.6:26656` |
 
-### Web Frontend
+## Build
 
-Additionally, Ignite CLI offers both Vue and React options for frontend scaffolding:
-
-For a Vue frontend, use: `ignite scaffold vue`
-For a React frontend, use: `ignite scaffold react`
-These commands can be run within your scaffolded blockchain project. 
-
-
-For more information see the [monorepo for Ignite front-end development](https://github.com/ignite/web).
-
-## Release
-To release a new version of your blockchain, create and push a new tag with `v` prefix. A new draft release with the configured targets will be created.
-
-```
-git tag v0.1
-git push origin v0.1
+```bash
+go build -o build/heyad ./cmd/heyad/
 ```
 
-After a draft release is created, make your final changes from the release page and publish it.
+## Genesis
 
-### Install
-To install the latest version of your blockchain node's binary, execute the following command on your machine:
+Genesis available at `https://github.com/heya-protocol/heya` or on request.
 
-```
-curl https://get.ignite.com/username/heya@latest! | sudo bash
-```
-`username/heya` should match the `username` and `repo_name` of the Github repository to which the source code was pushed. Learn more about [the install process](https://github.com/allinbits/starport-installer).
+## License
 
-## Learn more
-
-- [Ignite CLI](https://ignite.com/cli)
-- [Tutorials](https://docs.ignite.com/guide)
-- [Ignite CLI docs](https://docs.ignite.com)
-- [Cosmos SDK docs](https://docs.cosmos.network)
-- [Developer Chat](https://discord.gg/ignite)
+MIT
