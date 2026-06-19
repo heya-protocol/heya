@@ -14,12 +14,15 @@
 # default branch.
 on: push
 
+permissions:
+  contents: write
+
 jobs:
   might_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -36,16 +39,14 @@ jobs:
           DO_NOT_TRACK: 1
 
       - name: Delete the "latest" Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
         if: ${{ steps.vars.outputs.is_release_type_latest == 'true' }}
-        with:
-          tag_name: ${{ steps.vars.outputs.tag_name }}
-          delete_release: true
+        run: |
+          gh release delete "${{ steps.vars.outputs.tag_name }}" --yes --cleanup-tag 2>/dev/null || true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish the Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: ${{ steps.vars.outputs.should_release == 'true' }}
         with:
           tag_name: ${{ steps.vars.outputs.tag_name }}
