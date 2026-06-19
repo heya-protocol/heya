@@ -1,12 +1,12 @@
 syntax = "proto3";
-package nebula.nebula.module;
+package heya.heya.module;
 
 import "cosmos/app/v1alpha1/module.proto";
 
 // Module is the config object for the module.
 message Module {
   option (cosmos.app.v1alpha1.module) = {
-    go_import: "nebula/x/nebula"
+    go_import: "heya/x/heya"
   };
 
   // authority defines the custom module authority. If not set, defaults to the governance module.

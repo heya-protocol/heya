@@ -1,4 +1,4 @@
-module nebula
+module heya
 
 go 1.25.0
 

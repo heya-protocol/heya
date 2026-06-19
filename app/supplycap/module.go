@@ -22,7 +22,7 @@ const (
 	ModuleName = "supplycap"
 )
 
-// MaxSupply is 10,000,000,000 NEB in unebula (10B * 1_000_000)
+// MaxSupply is 10,000,000,000 HEYA in uheya (10B * 1_000_000)
 var MaxSupply = new(big.Int).Mul(big.NewInt(10_000_000_000), big.NewInt(1_000_000))
 
 var (
@@ -45,7 +45,7 @@ func (AppModule) IsAppModule()        {}
 
 func (am AppModule) BeginBlock(ctx context.Context) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	total := am.bankKeeper.GetSupply(sdkCtx, "unebula")
+	total := am.bankKeeper.GetSupply(sdkCtx, "uheya")
 	if total.Amount.BigInt().Cmp(MaxSupply) >= 0 {
 		params, err := am.mintKeeper.Params.Get(sdkCtx)
 		if err != nil {

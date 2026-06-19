@@ -1,15 +1,15 @@
 # Nebula Chain - Summary
 
 ## Goal
-Build a Cosmos SDK blockchain (Nebula) with a native coin (NEB), max supply 10B, and CosmWasm smart contracts.
+Build a Cosmos SDK blockchain (Nebula) with a native coin (HEYA), max supply 10B, and CosmWasm smart contracts.
 
 ## Constraints & Preferences
-- Run locally with systemd (`nebulad.service`)
-- Address prefix: `nebula`
-- Denom: `unebula` (1 NEB = 1,000,000 unebula)
-- Chain ID: `nebula-1`
-- Max supply: 10,000,000,000 NEB (hard cap via custom supplycap module)
-- Genesis circulation: 5,000,000,000 NEB (50%)
+- Run locally with systemd (`heyad.service`)
+- Address prefix: `heya`
+- Denom: `uheya` (1 HEYA = 1,000,000 uheya)
+- Chain ID: `heya-1`
+- Max supply: 10,000,000,000 HEYA (hard cap via custom supplycap module)
+- Genesis circulation: 5,000,000,000 HEYA (50%)
 - Seed node baked into binary: `1efe4ede5860cd60a36d0161df60fc3e31c2a038@178.63.164.6:26656`
 - Block time: ~5s (default `timeout_commit`)
 - User IP for peer discovery: 178.63.164.6
@@ -17,24 +17,24 @@ Build a Cosmos SDK blockchain (Nebula) with a native coin (NEB), max supply 10B,
 ## Progress
 ### Done
 - Scaffolded chain with Ignite CLI v28.5.0 (Cosmos SDK v0.50.8)
-- Built binary `nebulad` and installed to `/root/go/bin/nebulad`
-- Configured `app/config.go` (address prefix, min gas price `0.025unebula`)
-- Created systemd service at `/etc/systemd/system/nebulad.service` (active, enabled)
-- Created custom `app/supplycap` module – zeros inflation params when total supply ≥ 10B NEB
+- Built binary `heyad` and installed to `/root/go/bin/heyad`
+- Configured `app/config.go` (address prefix, min gas price `0.025uheya`)
+- Created systemd service at `/etc/systemd/system/heyad.service` (active, enabled)
+- Created custom `app/supplycap` module – zeros inflation params when total supply ≥ 10B HEYA
 - Registered supplycap module in `app.RegisterModules()` and in `beginBlockers` before mint
-- Genesis configured: `unebula` denom everywhere, 3 accounts:
-  - alice: 2,000,000,000 NEB available + 500,000,000 NEB staked (validator NEBULA 1)
-  - bob: 1,500,000,000 NEB
-  - community: 1,000,000,000 NEB
+- Genesis configured: `uheya` denom everywhere, 3 accounts:
+  - alice: 2,000,000,000 HEYA available + 500,000,000 HEYA staked (validator HEYAULA 1)
+  - bob: 1,500,000,000 HEYA
+  - community: 1,000,000,000 HEYA
 - Added validator description (identity, website, security-contact, details)
-- Created `/root/nebula/join-network.sh` for new nodes
+- Created `/root/heya/join-network.sh` for new nodes
 - Enabled `seed_mode = true`, PEX on main node
 - Embedded seeds/persistent_peers in `initCometBFTConfig()` so new nodes auto-connect
 - Integrated CosmWasm: added `github.com/CosmWasm/wasmd@v0.54.8`, `github.com/CosmWasm/wasmvm/v2@v2.2.7`
 - Installed `libwasmvm.x86_64.so` (pre-built shared library from wasmvm v2.2.7 release)
-- Updated `app/app.go`, `app/app_config.go`, `cmd/nebulad/cmd/root.go` for wasm integration
-- Reset chain state via `nebulad unsafe-reset-all` to handle new wasm store key
-- Set binary version via ldflags: `-X .../version.Name=nebula -X .../version.Version=v1.0.0 -X .../version.BuildTags='cosmwasm wasm'`
+- Updated `app/app.go`, `app/app_config.go`, `cmd/heyad/cmd/root.go` for wasm integration
+- Reset chain state via `heyad unsafe-reset-all` to handle new wasm store key
+- Set binary version via ldflags: `-X .../version.Name=heya -X .../version.Version=v1.0.0 -X .../version.BuildTags='cosmwasm wasm'`
 - Chain running and producing blocks; wasm module functional
 - **Dependency audit completed** – 9 packages upgraded successfully
 - **Upgrade handler framework** – `app/upgrades.go` with `setupUpgradeHandlers()` for future store upgrades (uses `StoreUpgrades` + `UpgradeStoreLoader` on scheduled upgrades; no more `unsafe-reset-all` needed)
@@ -63,6 +63,14 @@ Build a Cosmos SDK blockchain (Nebula) with a native coin (NEB), max supply 10B,
 - `ibc-go/v8` – already at latest v8.8.0
 - `log`, `confix`, `testify`, `protobuf` – already at latest
 
+### Fixed (2026-06-19)
+- Fixed genesis `bonded pool balance` panic – reinitialized chain with proper module accounts
+- Regenerated genesis via `heyad init`, `add-genesis-account`, `gentx`, `collect-gentxs`
+- New keys created for alice, bob, community, relayer (mnemonics saved in session history)
+- Chain restarted and producing blocks (height 4+)
+- Updated wasm params (code upload restricted to alice)
+- Restored mainnet slashing params (signed_blocks_window: 10000, downtime_jail_duration: 86400s)
+
 ### In Progress
 (none)
 
@@ -70,10 +78,10 @@ Build a Cosmos SDK blockchain (Nebula) with a native coin (NEB), max supply 10B,
 (none)
 
 ## Key Decisions
-- Max supply of 10B NEB enforced via custom `app/supplycap` module (BeginBlocker checks supply, zeros inflation params), not at SDK level.
-- 50% supply at genesis (5B NEB) to allow inflation-based emission for remaining 5B.
-- Seed node data baked into binary source (`cmd/nebulad/cmd/config.go`), not config file.
-- Validator renamed to "NEBULA 1" via `tx staking edit-validator`.
+- Max supply of 10B HEYA enforced via custom `app/supplycap` module (BeginBlocker checks supply, zeros inflation params), not at SDK level.
+- 50% supply at genesis (5B HEYA) to allow inflation-based emission for remaining 5B.
+- Seed node data baked into binary source (`cmd/heyad/cmd/config.go`), not config file.
+- Validator renamed to "HEYAULA 1" via `tx staking edit-validator`.
 - Use `GOPROXY='https://proxy.golang.org,https://goproxy.io,direct'` – proxy.golang.org needed for some packages that goproxy.io can't serve, and vice versa.
 - Store upgrades now handled via `StoreUpgrades` + `UpgradeStoreLoader` in `app/upgrades.go`; new modules can be added without resetting chain state.
 
@@ -87,30 +95,30 @@ Build a Cosmos SDK blockchain (Nebula) with a native coin (NEB), max supply 10B,
 - **Proxy**: `GOPROXY='https://proxy.golang.org,https://goproxy.io,direct'` – neither proxy alone serves all packages; proxy.golang.org returns 403 for some, goproxy.io fails on others (e.g. old `golang.org/x/sys`). Use both with fallback.
 - **Build**:
   ```
-  cd /root/nebula
-  CGO_ENABLED=1 go build -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=nebula \
-    -X github.com/cosmos/cosmos-sdk/version.AppName=nebulad \
+  cd /root/heya
+  CGO_ENABLED=1 go build -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=heya \
+    -X github.com/cosmos/cosmos-sdk/version.AppName=heyad \
     -X github.com/cosmos/cosmos-sdk/version.Version=v1.0.0 \
     -X github.com/cosmos/cosmos-sdk/version.Commit=$(git rev-parse HEAD) \
     -X 'github.com/cosmos/cosmos-sdk/version.BuildTags=cosmwasm wasm'" \
-    -o /root/go/bin/nebulad ./cmd/nebulad/
+    -o /root/go/bin/heyad ./cmd/heyad/
   ```
 - **libwasmvm**: loaded from `/root/go/pkg/mod/github.com/\!cosm\!wasm/wasmvm/v2@v2.2.7/internal/api/libwasmvm.x86_64.so` or system `/usr/lib/x86_64-linux-gnu/libwasmvm.x86_64.so`
 - **Store upgrades**: New module store keys added via `app.RegisterStores()`. For existing chains, schedule upgrade via governance → handler in `app/upgrades.go` applies `StoreUpgrades` with `UpgradeStoreLoader`.
-- **Validator**: NEBULA 1, power 500M unebula, moniker `nebula-test`, node ID `1efe4ede5860cd60a36d0161df60fc3e31c2a038` (seed mode).
+- **Validator**: HEYAULA 1, power 500M uheya, moniker `heya-test`, node ID `1efe4ede5860cd60a36d0161df60fc3e31c2a038` (seed mode).
 
 ## Relevant Files
-- `/root/nebula/`: chain root
-- `/root/nebula/app/supplycap/module.go`: max supply enforcement (10B NEB cap)
-- `/root/nebula/cmd/nebulad/cmd/config.go`: default seeds and persistent_peers baked into binary
-- `/root/nebula/app/app.go`: app structure, wasm keeper creation
-- `/root/nebula/app/app_config.go`: module ordering, permissions
-- `/root/nebula/cmd/nebulad/cmd/root.go`: CLI registration
-- `/root/nebula/config.yml`: Ignite config
-- `/root/nebula/app/upgrades.go`: upgrade handler framework (v2 upgrade with StoreUpgrades)
-- `/root/nebula/join-network.sh`: automated new-node join script (builds from source)
-- `/root/nebula/scripts/deploy-seed.sh`: production seed node deployment
-- `/root/nebula/scripts/export-genesis.sh`: genesis export from live chain
-- `/root/nebula/go.mod`: dependency list (audited and upgraded)
-- `/etc/systemd/system/nebulad.service`: systemd unit
-- `/root/.nebula/config/`: data dir
+- `/root/heya/`: chain root
+- `/root/heya/app/supplycap/module.go`: max supply enforcement (10B HEYA cap)
+- `/root/heya/cmd/heyad/cmd/config.go`: default seeds and persistent_peers baked into binary
+- `/root/heya/app/app.go`: app structure, wasm keeper creation
+- `/root/heya/app/app_config.go`: module ordering, permissions
+- `/root/heya/cmd/heyad/cmd/root.go`: CLI registration
+- `/root/heya/config.yml`: Ignite config
+- `/root/heya/app/upgrades.go`: upgrade handler framework (v2 upgrade with StoreUpgrades)
+- `/root/heya/join-network.sh`: automated new-node join script (builds from source)
+- `/root/heya/scripts/deploy-seed.sh`: production seed node deployment
+- `/root/heya/scripts/export-genesis.sh`: genesis export from live chain
+- `/root/heya/go.mod`: dependency list (audited and upgraded)
+- `/etc/systemd/system/heyad.service`: systemd unit
+- `/root/.heya/config/`: data dir

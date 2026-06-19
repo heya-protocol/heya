@@ -6,8 +6,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"nebula/app"
-	"nebula/cmd/nebulad/cmd"
+	"heya/app"
+	"heya/cmd/heyad/cmd"
 )
 
 func main() {

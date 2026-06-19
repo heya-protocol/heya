@@ -3,17 +3,17 @@ validation: sovereign
 accounts: 
 - name: alice
   coins:
-  - 100000000000unebula
+  - 100000000000uheya
 - name: bob
   coins:
-  - 50000000000unebula
+  - 50000000000uheya
 client:
   openapi:
     path: docs/static/openapi.yml
 faucet:
   name: bob
   coins:
-  - 5000000unebula
+  - 5000000uheya
 validators:
 - name: alice
-  bonded: 100000000000unebula
+  bonded: 100000000000uheya

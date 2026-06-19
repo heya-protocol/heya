@@ -31,11 +31,11 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
-	"nebula/app"
+	"heya/app"
 )
 
 const (
-	SimAppChainID = "nebula-simapp"
+	SimAppChainID = "heya-simapp"
 )
 
 var FlagEnableStreamingValue bool

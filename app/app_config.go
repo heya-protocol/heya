@@ -29,7 +29,7 @@ import (
 	circuittypes 	"cosmossdk.io/x/circuit/types"
 	evidencetypes "cosmossdk.io/x/evidence/types"
 
-	"nebula/app/supplycap"
+	"heya/app/supplycap"
 	"cosmossdk.io/x/feegrant"
 	"cosmossdk.io/x/nft"
 	upgradetypes "cosmossdk.io/x/upgrade/types"

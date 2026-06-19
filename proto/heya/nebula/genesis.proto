@@ -1,13 +1,13 @@
 syntax = "proto3";
-package nebula.nebula;
+package heya.heya;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
-import "nebula/nebula/params.proto";
+import "heya/heya/params.proto";
 
-option go_package = "nebula/x/nebula/types";
+option go_package = "heya/x/heya/types";
 
-// GenesisState defines the nebula module's genesis state.
+// GenesisState defines the heya module's genesis state.
 message GenesisState {
   // params defines all the parameters of the module.
   Params params = 1 [

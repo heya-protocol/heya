@@ -1,14 +1,14 @@
 syntax = "proto3";
-package nebula.nebula;
+package heya.heya;
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "nebula/x/nebula/types";
+option go_package = "heya/x/heya/types";
 
 // Params defines the parameters for the module.
 message Params {
-  option (amino.name) = "nebula/x/nebula/Params";
+  option (amino.name) = "heya/x/heya/Params";
   option (gogoproto.equal) = true;
 
   

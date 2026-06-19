@@ -1,13 +1,13 @@
 syntax = "proto3";
-package nebula.nebula;
+package heya.heya;
 
 import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "nebula/nebula/params.proto";
+import "heya/heya/params.proto";
 
-option go_package = "nebula/x/nebula/types";
+option go_package = "heya/x/heya/types";
 
 // Msg defines the Msg service.
 service Msg {
@@ -21,7 +21,7 @@ service Msg {
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name) = "nebula/x/nebula/MsgUpdateParams";
+  option (amino.name) = "heya/x/heya/MsgUpdateParams";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];

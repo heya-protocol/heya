@@ -84,13 +84,13 @@ import (
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	"nebula/app/supplycap"
-	"nebula/docs"
+	"heya/app/supplycap"
+	"heya/docs"
 )
 
 const (
-	AccountAddressPrefix = "nebula"
-	Name                 = "nebula"
+	AccountAddressPrefix = "heya"
+	Name                 = "heya"
 )
 
 var (
