@@ -18,6 +18,8 @@ builds:
       - arm64
     env:
       - CGO_ENABLED=0
+    flags:
+      - -trimpath
     ldflags:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=heya -X github.com/cosmos/cosmos-sdk/version.AppName=heyad -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
 
