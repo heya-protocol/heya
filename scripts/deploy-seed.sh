@@ -10,7 +10,7 @@ SEED_IP="178.63.164.6"
 
 print_step() { echo -e "\n\e[1;34m>>> $1\e[0m"; }
 
-print_step "Sprawdzanie zależności..."
+print_step "Checking dependencies..."
 if ! command -v go &>/dev/null; then
     echo "Instalowanie Go 1.26..."
     wget -q https://go.dev/dl/go1.26.4.linux-amd64.tar.gz -O /tmp/go.tar.gz
@@ -34,7 +34,7 @@ fi
 cd "$HEYA_DIR"
 git pull
 
-print_step "Budowanie binary..."
+print_step "Building binary..."
 CGO_ENABLED=1 go build -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=heya \
     -X github.com/cosmos/cosmos-sdk/version.AppName=heyad \
     -X github.com/cosmos/cosmos-sdk/version.Version=v1.0.0 \
@@ -42,16 +42,16 @@ CGO_ENABLED=1 go build -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=he
     -X 'github.com/cosmos/cosmos-sdk/version.BuildTags=cosmwasm wasm'" \
     -o "$BINARY_PATH" ./cmd/heyad/
 
-print_step "Inicjalizacja jako seed node..."
+print_step "Initializing as seed node..."
 $BINARY init "heya-seed" --chain-id "$CHAIN_ID"
 
-print_step "Konfiguracja seed_mode..."
+print_step "Configuring seed_mode..."
 sed -i 's/^seed_mode = .*/seed_mode = true/' ~/.heya/config/config.toml
 sed -i 's/^seeds = .*/seeds = ""/' ~/.heya/config/config.toml
 sed -i 's/^persistent_peers = .*/persistent_peers = ""/' ~/.heya/config/config.toml
 sed -i 's/^laddr = "tcp:\/\/0.0.0.0:26656"/laddr = "tcp:\/\/0.0.0.0:26656"/' ~/.heya/config/config.toml
 
-print_step "Konfiguracja app.toml..."
+print_step "Configuring app.toml..."
 sed -i 's/^minimum-gas-prices = .*/minimum-gas-prices = "0.025uheya"/' ~/.heya/config/app.toml
 
 print_step "Kopiowanie genesis.json..."
