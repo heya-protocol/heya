@@ -7,7 +7,7 @@ CHAIN_ID="heya-1"
 DENOM="uheya"
 BINARY="heyad"
 BINARY_PATH="$(go env GOPATH)/bin/heyad"
-HEYA_DIR="/root/heya"
+HEYA_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 
 print_step() { echo -e "\n\e[1;34m>>> $1\e[0m"; }
 
