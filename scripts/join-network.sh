@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-SEED_NODE_ID="e1d96e06e0844b787e94393f3ab5594c39c5b234"
-SEED_IP="178.63.164.6"
 CHAIN_ID="heya-1"
 DENOM="uheya"
 BINARY="heyad"
@@ -105,12 +103,8 @@ fi
 cp "$GENESIS_FILE" "$HEYA_HOME/config/genesis.json"
 echo "Genesis copied from repository"
 
-print_step "Configuring persistent_peers..."
-PEERS="${SEED_NODE_ID}@${SEED_IP}:26656"
-sed -i "s/^persistent_peers = .*/persistent_peers = \"$PEERS\"/" ~/.heya/config/config.toml
-
-print_step "Configuring seed_peers..."
-sed -i "s/^seeds = .*/seeds = \"$PEERS\"/" ~/.heya/config/config.toml
+print_step "Skipping automatic peer configuration (set seeds/persistent_peers manually in config.toml)..."
+echo "  Edit: ~/.heya/config/config.toml"
 
 print_step "Configuring app.toml (min gas price)..."
 sed -i 's/^minimum-gas-prices = .*/minimum-gas-prices = "0.025uheya"/' ~/.heya/config/app.toml
