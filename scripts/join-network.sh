@@ -57,7 +57,7 @@ if [ "$BUILD_MODE" = "build" ]; then
     curl -sSL "$SRC_URL" -o /tmp/heya-src.tar.gz
     tar -xzf /tmp/heya-src.tar.gz -C /tmp/
     cd "/tmp/heya-${VERSION}"
-    CGO_ENABLED=1 go build -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=heya \
+    CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X github.com/cosmos/cosmos-sdk/version.Name=heya \
         -X github.com/cosmos/cosmos-sdk/version.AppName=heyad \
         -X github.com/cosmos/cosmos-sdk/version.Version=${TAG} \
         -X github.com/cosmos/cosmos-sdk/version.Commit=$(git rev-parse HEAD 2>/dev/null || echo 'unknown') \
