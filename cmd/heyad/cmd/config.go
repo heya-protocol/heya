@@ -14,8 +14,8 @@ func initCometBFTConfig() *cmtcfg.Config {
 	// cfg.P2P.MaxNumInboundPeers = 100
 	// cfg.P2P.MaxNumOutboundPeers = 40
 
-	cfg.P2P.Seeds = "1efe4ede5860cd60a36d0161df60fc3e31c2a038@178.63.164.6:26656"
-	cfg.P2P.PersistentPeers = "1efe4ede5860cd60a36d0161df60fc3e31c2a038@178.63.164.6:26656"
+	cfg.P2P.Seeds = ""
+	cfg.P2P.PersistentPeers = ""
 
 	return cfg
 }
