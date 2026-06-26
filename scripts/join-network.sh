@@ -26,20 +26,13 @@ progress_bar() {
 
 print_banner() {
     clear 2>/dev/null || true
-    echo ""
-    echo -e "  ${BOLD}${C}╔══════════════════════════════════════╗${N}"
-    echo -e "  ${BOLD}${C}║      ${Y}HEYA NETWORK — NODE INSTALL${C}      ║${N}"
-    echo -e "  ${BOLD}${C}║        ${W}${CHAIN_ID}${C}               ║${N}"
-    echo -e "  ${BOLD}${C}╚══════════════════════════════════════╝${N}"
-    echo ""
+    echo -e "\n  ${BOLD}${C}══ ${Y}HEYA${C} ─ ${W}${CHAIN_ID}${C} ══${N}\n"
 }
 
 print_step() {
     CURRENT_STEP=$((CURRENT_STEP + 1))
     echo ""
-    echo -e "  ${BOLD}${B}┌──────────────────────────────────────────┐${N}"
-    echo -e "  ${BOLD}${B}│ ${G}●${N}  Step ${C}${CURRENT_STEP}/${TOTAL_STEPS}${N}  ${W}$1${N}"
-    echo -e "  ${BOLD}${B}└──────────────────────────────────────────┘${N}"
+    echo -e "  ${B}▶${N}  ${W}Step ${C}${CURRENT_STEP}/${TOTAL_STEPS}${N}  ${W}$1${N}"
     progress_bar
 }
 
@@ -76,9 +69,31 @@ run_with_spinner() {
 print_banner
 
 BUILD_MODE="download"
+for arg in "$@"; do
+    case "$arg" in
+        --build) BUILD_MODE="build" ;;
+        --download) BUILD_MODE="download" ;;
+        --clean) CLEAN_MODE=1 ;;
+    esac
+done
+
+if [ "$CLEAN_MODE" = "1" ]; then
+    print_banner
+    echo -e "  ${Y}Cleaning Heya node installation...${N}\n"
+    run_with_spinner "Stopping systemd" bash -c "systemctl stop heyad 2>/dev/null; systemctl disable heyad 2>/dev/null; rm -f /etc/systemd/system/heyad.service; systemctl daemon-reload 2>/dev/null" || true
+    run_with_spinner "Removing binary" rm -f "$BINARY_PATH"
+    run_with_spinner "Removing ~/.heya" rm -rf "$HOME/.heya"
+    run_with_spinner "Cleaning /tmp" rm -f /tmp/heya_api.json /tmp/heya.tar.gz /tmp/heya-src.tar.gz
+    rm -rf /tmp/heya-*
+    echo ""
+    echo -e "  ${G}✓${N} Clean complete."
+    echo -e "  ${C}ℹ${N} Run script again to reinstall.\n"
+    exit 0
+fi
+
 if [ "$#" -eq 0 ]; then
-    echo -e "  ${BOLD}${W}Select installation method:${N}"
-    echo -e "    ${G}1)${N} Download pre-built binary ${W}(default)${N}"
+    echo -e "  ${W}Select installation method:${N}"
+    echo -e "    ${G}1)${N} Download binary ${W}(default)${N}"
     echo -e "    ${Y}2)${N} Build from source"
     echo ""
     read -r -p "  Choice [1/2]: " CHOICE
@@ -86,13 +101,6 @@ if [ "$#" -eq 0 ]; then
         2|build) BUILD_MODE="build" ;;
         *)       BUILD_MODE="download" ;;
     esac
-else
-    for arg in "$@"; do
-        case "$arg" in
-            --build) BUILD_MODE="build" ;;
-            --download) BUILD_MODE="download" ;;
-        esac
-    done
 fi
 
 ARCH="$(uname -m)"
@@ -101,89 +109,82 @@ case "$ARCH" in
     x86_64)  ARCH="amd64" ;;
     aarch64) ARCH="arm64" ;;
     arm64)   ARCH="arm64" ;;
-    *)       echo -e "  ${R}✗ Unsupported architecture: $ARCH${N}"; exit 1 ;;
+    *)       echo -e "  ${R}✗ Unsupported arch: $ARCH${N}"; exit 1 ;;
 esac
 
-print_step "Fetching latest release info from GitHub..."
+print_step "Fetching latest release from GitHub..."
 API_URL="https://api.github.com/repos/heyanetwork/heya/releases/latest"
-run_with_spinner "Fetching release info" bash -c "curl -sS '$API_URL' > /tmp/heya_api.json"
+run_with_spinner "Fetching release" bash -c "curl -sS '$API_URL' > /tmp/heya_api.json"
 TAG=$(grep '"tag_name"' /tmp/heya_api.json | head -1 | sed 's/.*"tag_name": "\(.*\)",/\1/')
 VERSION="${TAG#v}"
-print_ok "Latest version: ${G}$TAG${N}"
+print_ok "Latest: ${G}$TAG${N}"
 
 if [ "$BUILD_MODE" = "build" ]; then
-    print_step "Building Heya binary from source (${TAG})..."
+    print_step "Building from source (${TAG})..."
     if ! command -v go &>/dev/null; then
-        echo -e "  ${R}✗ Go is not installed. Install it first: https://go.dev/doc/install${N}"
+        echo -e "  ${R}✗ Go not installed: https://go.dev/doc/install${N}"
         exit 1
     fi
     SRC_URL="https://github.com/heyanetwork/heya/archive/refs/tags/${TAG}.tar.gz"
     run_with_spinner "Downloading source" curl -sSL "$SRC_URL" -o /tmp/heya-src.tar.gz
-    run_with_spinner "Extracting source" tar -xzf /tmp/heya-src.tar.gz -C /tmp/
+    run_with_spinner "Extracting" tar -xzf /tmp/heya-src.tar.gz -C /tmp/
     cd "/tmp/heya-${VERSION}"
-    run_with_spinner "Building binary (this may take a while)" bash -c "CGO_ENABLED=1 go build -trimpath -ldflags \"-s -w -X github.com/cosmos/cosmos-sdk/version.Name=heya -X github.com/cosmos/cosmos-sdk/version.AppName=heyad -X github.com/cosmos/cosmos-sdk/version.Version=${TAG} -X github.com/cosmos/cosmos-sdk/version.Commit=$(git rev-parse HEAD 2>/dev/null || echo 'unknown') -X 'github.com/cosmos/cosmos-sdk/version.BuildTags=cosmwasm wasm'\" -o \"$BINARY_PATH\" ./cmd/heyad/"
+    run_with_spinner "Building (may take a while)" bash -c "CGO_ENABLED=1 go build -trimpath -ldflags \"-s -w -X github.com/cosmos/cosmos-sdk/version.Name=heya -X github.com/cosmos/cosmos-sdk/version.AppName=heyad -X github.com/cosmos/cosmos-sdk/version.Version=${TAG} -X github.com/cosmos/cosmos-sdk/version.Commit=$(git rev-parse HEAD 2>/dev/null || echo 'unknown') -X 'github.com/cosmos/cosmos-sdk/version.BuildTags=cosmwasm wasm'\" -o \"$BINARY_PATH\" ./cmd/heyad/"
     rm -f /tmp/heya-src.tar.gz
     rm -rf "/tmp/heya-${VERSION}"
-    print_ok "Built ${BOLD}${W}$BINARY${N} ${G}${TAG}${N} from source to ${C}$BINARY_PATH${N}"
+    print_ok "Built ${W}$BINARY${N} ${G}${TAG}${N}"
 else
-    print_step "Downloading latest Heya release from GitHub..."
+    print_step "Downloading release from GitHub..."
     FILENAME="heya-${VERSION}-${OS}-${ARCH}.tar.gz"
     DOWNLOAD_URL="https://github.com/heyanetwork/heya/releases/download/${TAG}/${FILENAME}"
-    run_with_spinner "Downloading ${FILENAME}" curl -sSL "$DOWNLOAD_URL" -o /tmp/heya.tar.gz
-    run_with_spinner "Extracting binary" tar -xzf /tmp/heya.tar.gz -C /tmp/
+    run_with_spinner "Downloading" curl -sSL "$DOWNLOAD_URL" -o /tmp/heya.tar.gz
+    run_with_spinner "Extracting" tar -xzf /tmp/heya.tar.gz -C /tmp/
     cp "/tmp/heya-${VERSION}-${OS}-${ARCH}/heyad" "$BINARY_PATH"
     chmod +x "$BINARY_PATH"
     rm -f /tmp/heya.tar.gz
     rm -rf "/tmp/heya-${VERSION}-${OS}-${ARCH}"
-    print_ok "Downloaded ${BOLD}${W}$BINARY${N} ${G}v$VERSION${N} to ${C}$BINARY_PATH${N}"
+    print_ok "Downloaded ${W}$BINARY${N} ${G}v$VERSION${N}"
 fi
 
-print_step "Checking for existing home directory..."
+print_step "Checking home directory..."
 HEYA_HOME="$HOME/.heya"
 if [ -d "$HEYA_HOME/config" ]; then
-    print_warn "Existing config found, backing up keys..."
-    [ -f "$HEYA_HOME/config/priv_validator_key.json" ] && cp "$HEYA_HOME/config/priv_validator_key.json" "$HEYA_HOME/config/priv_validator_key.json.bak" && print_ok "priv_validator_key.json backed up"
-    [ -f "$HEYA_HOME/config/node_key.json" ] && cp "$HEYA_HOME/config/node_key.json" "$HEYA_HOME/config/node_key.json.bak" && print_ok "node_key.json backed up"
+    print_warn "Backing up existing keys..."
+    [ -f "$HEYA_HOME/config/priv_validator_key.json" ] && cp "$HEYA_HOME/config/priv_validator_key.json" "$HEYA_HOME/config/priv_validator_key.json.bak" && print_ok "validator key backed up"
+    [ -f "$HEYA_HOME/config/node_key.json" ] && cp "$HEYA_HOME/config/node_key.json" "$HEYA_HOME/config/node_key.json.bak" && print_ok "node key backed up"
 else
-    print_info "No existing config found"
+    print_info "No existing config"
 fi
 
-print_step "Initializing node (generating config files)..."
+print_step "Initializing node..."
 "$BINARY_PATH" init "$(hostname)" --chain-id $CHAIN_ID --overwrite 2>/dev/null
-print_ok "Node initialized with chain-id ${C}$CHAIN_ID${N}"
+print_ok "Node init: ${C}$CHAIN_ID${N}"
 
-print_step "Restoring keys and genesis from repository..."
-if [ -f "$HEYA_HOME/config/priv_validator_key.json.bak" ]; then
-    mv "$HEYA_HOME/config/priv_validator_key.json.bak" "$HEYA_HOME/config/priv_validator_key.json"
-    print_ok "priv_validator_key.json restored"
-fi
-if [ -f "$HEYA_HOME/config/node_key.json.bak" ]; then
-    mv "$HEYA_HOME/config/node_key.json.bak" "$HEYA_HOME/config/node_key.json"
-    print_ok "node_key.json restored"
-fi
+print_step "Restoring keys and genesis..."
+[ -f "$HEYA_HOME/config/priv_validator_key.json.bak" ] && mv "$HEYA_HOME/config/priv_validator_key.json.bak" "$HEYA_HOME/config/priv_validator_key.json" && print_ok "Validator key restored"
+[ -f "$HEYA_HOME/config/node_key.json.bak" ] && mv "$HEYA_HOME/config/node_key.json.bak" "$HEYA_HOME/config/node_key.json" && print_ok "Node key restored"
 if [ ! -f "$GENESIS_FILE" ]; then
-    echo -e "  ${R}✗ Error: $GENESIS_FILE not found!${N}"
+    echo -e "  ${R}✗ $GENESIS_FILE not found${N}"
     exit 1
 fi
 cp "$GENESIS_FILE" "$HEYA_HOME/config/genesis.json"
-print_ok "Genesis copied from repository"
+print_ok "Genesis copied"
 
-print_step "Peer and gas configuration..."
-print_info "Skipping automatic peer configuration — set seeds/persistent_peers manually:"
-echo -e "  ${W}  Edit: ~/.heya/config/config.toml${N}"
+print_step "Configuring node..."
 sed -i 's/^minimum-gas-prices = .*/minimum-gas-prices = "0.025uheya"/' ~/.heya/config/app.toml
-print_ok "min gas price set to ${C}0.025uheya${N}"
+print_ok "min gas price: ${C}0.025uheya${N}"
+print_info "Set seeds/persistent_peers in ~/.heya/config/config.toml"
 
 print_step "Checking priv_validator_state.json..."
 if [ ! -f "$HEYA_HOME/data/priv_validator_state.json" ]; then
     mkdir -p "$HEYA_HOME/data"
     echo '{"height":"0","round":0,"step":0}' > "$HEYA_HOME/data/priv_validator_state.json"
-    print_ok "Created priv_validator_state.json (height=0)"
+    print_ok "Created (height=0)"
 else
-    print_ok "priv_validator_state.json already exists"
+    print_ok "Already exists"
 fi
 
-print_step "Setting up systemd service..."
+print_step "Setting up systemd..."
 cat > /etc/systemd/system/heyad.service <<EOF
 [Unit]
 Description=Heya Node
@@ -203,15 +204,13 @@ EOF
 run_with_spinner "Reloading systemd" systemctl daemon-reload
 run_with_spinner "Enabling service" systemctl enable heyad
 run_with_spinner "Starting node" systemctl start heyad
-print_ok "Systemd service ${G}enabled${N} and ${G}started${N}"
+print_ok "Service ${G}enabled${N} and ${G}started${N}"
 
 echo ""
-echo -e "  ${BOLD}${G}╔══════════════════════════════════════╗${N}"
-echo -e "  ${BOLD}${G}║         ${W}INSTALLATION COMPLETE${G}         ║${N}"
-echo -e "  ${BOLD}${G}╚══════════════════════════════════════╝${N}"
+echo -e "  ${G}═══════════════════════════════${N}"
+echo -e "  ${G}✓${N}  ${W}INSTALLATION COMPLETE${N}"
+echo -e "  ${G}═══════════════════════════════${N}"
 echo ""
-echo -e "  ${C}ℹ${N} Check logs:  ${W}journalctl -u heyad -f${N}"
-echo -e "  ${C}ℹ${N} Node status: ${W}$BINARY status${N}"
-echo ""
-echo -e "  ${B}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
+echo -e "  ${C}ℹ${N} Logs: ${W}journalctl -u heyad -f${N}"
+echo -e "  ${C}ℹ${N} Status: ${W}$BINARY status${N}"
 echo ""

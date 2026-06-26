@@ -14,3 +14,8 @@ build:
 
 install:
 	go install -trimpath -ldflags "-s -w $(LD_FLAGS)" ./cmd/heyad
+
+clean:
+	rm -rf $(BUILD_DIR)
+	rm -f $(GOPATH)/bin/$(BINARY)
+	go clean -cache

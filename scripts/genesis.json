@@ -1,7 +1,6 @@
 {
   "app_name": "heyad",
-  "app_version": "v1.0.6",
-  "genesis_time": "2026-06-20T14:32:23.559795424Z",
+  "genesis_time": "2026-06-26T19:17:26Z",
   "chain_id": "heya-1",
   "initial_height": 1,
   "app_hash": null,
@@ -669,6 +668,9 @@
       "codes": [],
       "contracts": [],
       "sequences": []
+    },
+    "tokenfactory": {
+      "params": {}
     }
   },
   "consensus": {

@@ -85,6 +85,7 @@ import (
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"heya/app/supplycap"
+	"heya/x/tokenfactory"
 	"heya/docs"
 )
 
@@ -150,6 +151,7 @@ type App struct {
 
 	WasmKeeper         wasmkeeper.Keeper
 	ScopedWasmKeeper   capabilitykeeper.ScopedKeeper
+	TokenFactoryKeeper tokenfactory.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
@@ -265,8 +267,11 @@ func New(
 	// build app
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	// register wasm store key
-	if err := app.RegisterStores(storetypes.NewKVStoreKey(wasmtypes.StoreKey)); err != nil {
+	// register wasm and tokenfactory store keys
+	if err := app.RegisterStores(
+		storetypes.NewKVStoreKey(wasmtypes.StoreKey),
+		storetypes.NewKVStoreKey("tokenfactory"),
+	); err != nil {
 		return nil, err
 	}
 
@@ -310,8 +315,16 @@ func New(
 	)
 	app.ScopedWasmKeeper = scopedWasmKeeper
 
+	// create tokenfactory keeper
+	app.TokenFactoryKeeper = tokenfactory.NewKeeper(
+		runtime.NewKVStoreService(app.UnsafeFindStoreKey("tokenfactory").(*storetypes.KVStoreKey)),
+		app.BankKeeper,
+		app.AccountKeeper,
+	)
+
 	if err := app.RegisterModules(
 		supplycap.NewAppModule(app.BankKeeper, app.MintKeeper),
+		tokenfactory.NewAppModule(app.appCodec, app.TokenFactoryKeeper),
 		wasm.NewAppModule(app.appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 	); err != nil {
 		return nil, err

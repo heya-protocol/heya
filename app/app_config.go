@@ -30,6 +30,7 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 
 	"heya/app/supplycap"
+	tokenfactorytypes "heya/x/tokenfactory/types"
 	"cosmossdk.io/x/feegrant"
 	"cosmossdk.io/x/nft"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -93,6 +94,7 @@ var (
 		consensustypes.ModuleName,
 		circuittypes.ModuleName,
 		wasmtypes.ModuleName,
+		tokenfactorytypes.ModuleName,
 		// chain modules
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	}
@@ -160,6 +162,7 @@ var (
 		{Account: ibcfeetypes.ModuleName},
 		{Account: icatypes.ModuleName},
 		{Account: wasmtypes.ModuleName},
+		{Account: tokenfactorytypes.ModuleName, Permissions: []string{authtypes.Minter, authtypes.Burner}},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 
