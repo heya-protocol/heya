@@ -135,7 +135,7 @@ if [ "$BUILD_MODE" = "build" ]; then
     print_ok "Built ${W}$BINARY${N} ${G}${TAG}${N}"
 else
     print_step "Downloading release from GitHub..."
-    FILENAME="heya-${VERSION}-${OS}-${ARCH}.tar.gz"
+    FILENAME="heya-${TAG}-${OS}-${ARCH}.tar.gz"
     DOWNLOAD_URL="https://github.com/heyanetwork/heya/releases/download/${TAG}/${FILENAME}"
     run_with_spinner "Downloading" curl -sSL "$DOWNLOAD_URL" -o /tmp/heya.tar.gz
     run_with_spinner "Extracting" tar -xzf /tmp/heya.tar.gz -C /tmp/
