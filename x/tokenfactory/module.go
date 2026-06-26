@@ -15,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"heya/x/tokenfactory/client/cli"
 	"heya/x/tokenfactory/types"
 )
 
@@ -47,9 +48,9 @@ func (b AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *runtime.ServeMux
 
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
-func (b AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
+func (b AppModuleBasic) GetTxCmd() *cobra.Command { return cli.NewTxCmd() }
 
-func (b AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
+func (b AppModuleBasic) GetQueryCmd() *cobra.Command { return cli.NewQueryCmd() }
 
 func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
@@ -77,6 +78,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 func (am AppModule) RegisterServices(cfg module.Configurator) error {
 	types.RegisterMsgServer(cfg.MsgServer(), NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(am.keeper))
 	return nil
 }
 
