@@ -91,7 +91,13 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 }
 
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesis())
+	denoms, err := am.keeper.AllDenomAdmins(ctx)
+	if err != nil {
+		panic(err)
+	}
+	gs := types.DefaultGenesis()
+	gs.Denoms = denoms
+	return cdc.MustMarshalJSON(gs)
 }
 
 func (am AppModule) ConsensusVersion() uint64 { return 1 }
@@ -103,7 +109,7 @@ func (am AppModule) EndBlock(context.Context) error { return nil }
 func (am AppModule) GenerateGenesisState(simState *module.SimulationState) {}
 
 func (am AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalMsg {
-	return nil
+	return []simtypes.WeightedProposalMsg{}
 }
 
 func (am AppModule) RegisterStoreKey(_ store.KVStoreService) {}

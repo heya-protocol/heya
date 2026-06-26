@@ -8,20 +8,17 @@ import (
 )
 
 type Keeper struct {
-	storeService  store.KVStoreService
-	bankKeeper    types.BankKeeper
-	accountKeeper types.AccountKeeper
+	storeService store.KVStoreService
+	bankKeeper   types.BankKeeper
 }
 
 func NewKeeper(
 	storeService store.KVStoreService,
 	bankKeeper types.BankKeeper,
-	accountKeeper types.AccountKeeper,
 ) Keeper {
 	return Keeper{
-		storeService:  storeService,
-		bankKeeper:    bankKeeper,
-		accountKeeper: accountKeeper,
+		storeService: storeService,
+		bankKeeper:   bankKeeper,
 	}
 }
 
@@ -29,16 +26,39 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-func (k Keeper) GetDenomAdmin(ctx sdk.Context, denom string) (string, bool) {
+func (k Keeper) GetDenomAdmin(ctx sdk.Context, denom string) (string, bool, error) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(types.DenomKey(denom))
-	if err != nil || bz == nil {
-		return "", false
+	if err != nil {
+		return "", false, err
 	}
-	return string(bz), true
+	if bz == nil {
+		return "", false, nil
+	}
+	return string(bz), true, nil
 }
 
-func (k Keeper) SetDenomAdmin(ctx sdk.Context, denom, admin string) {
+func (k Keeper) SetDenomAdmin(ctx sdk.Context, denom, admin string) error {
 	store := k.storeService.OpenKVStore(ctx)
-	store.Set(types.DenomKey(denom), []byte(admin))
+	return store.Set(types.DenomKey(denom), []byte(admin))
+}
+
+func (k Keeper) AllDenomAdmins(ctx sdk.Context) ([]*types.DenomAuthority, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	iter, err := store.Iterator(nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close()
+
+	var denoms []*types.DenomAuthority
+	for ; iter.Valid(); iter.Next() {
+		key := iter.Key()
+		value := iter.Value()
+		denoms = append(denoms, &types.DenomAuthority{
+			Denom: string(key),
+			Admin: string(value),
+		})
+	}
+	return denoms, nil
 }

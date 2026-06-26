@@ -319,7 +319,6 @@ func New(
 	app.TokenFactoryKeeper = tokenfactory.NewKeeper(
 		runtime.NewKVStoreService(app.UnsafeFindStoreKey("tokenfactory").(*storetypes.KVStoreKey)),
 		app.BankKeeper,
-		app.AccountKeeper,
 	)
 
 	if err := app.RegisterModules(

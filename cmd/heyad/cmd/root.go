@@ -100,7 +100,7 @@ func NewRootCmd() *cobra.Command {
 
 	overwriteFlagDefaults(rootCmd, map[string]string{
 		flags.FlagChainID:        strings.ReplaceAll(app.Name, "-", ""),
-		flags.FlagKeyringBackend: "test",
+		flags.FlagKeyringBackend: "os",
 	})
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
@@ -142,7 +142,11 @@ func ProvideClientContext(
 		WithViper(app.Name) // env variable prefix
 
 	// Read the config again to overwrite the default values with the values from the config file
-	clientCtx, _ = config.ReadFromClientConfig(clientCtx)
+	var err error
+	clientCtx, err = config.ReadFromClientConfig(clientCtx)
+	if err != nil {
+		panic(err)
+	}
 
 	// textual is enabled by default, we need to re-create the tx config grpc instead of bank keeper.
 	txConfigOpts.TextualCoinMetadataQueryFn = authtxconfig.NewGRPCCoinMetadataQueryFn(clientCtx)

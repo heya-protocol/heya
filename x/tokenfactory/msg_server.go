@@ -20,10 +20,29 @@ var _ types.MsgServer = msgServer{}
 func (s msgServer) CreateDenom(goCtx context.Context, msg *types.MsgCreateDenom) (*types.MsgCreateDenomResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	denom := types.NewDenom(msg.Sender, msg.Subdenom)
-	if _, exists := s.keeper.GetDenomAdmin(ctx, denom); exists {
+	_, exists, err := s.keeper.GetDenomAdmin(ctx, denom)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
 		return nil, types.ErrDenomExists
 	}
-	s.keeper.SetDenomAdmin(ctx, denom, msg.Sender)
+
+	fee := types.DefaultParams().DenomCreationFee
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.keeper.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, types.ModuleName, sdk.NewCoins(fee)); err != nil {
+		return nil, err
+	}
+	if err := s.keeper.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(fee)); err != nil {
+		return nil, err
+	}
+
+	if err := s.keeper.SetDenomAdmin(ctx, denom, msg.Sender); err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.ModuleName,
@@ -40,14 +59,17 @@ func (s msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMi
 	if err != nil {
 		return nil, err
 	}
-	admin, exists := s.keeper.GetDenomAdmin(ctx, coin.Denom)
+	admin, exists, err := s.keeper.GetDenomAdmin(ctx, coin.Denom)
+	if err != nil {
+		return nil, err
+	}
 	if !exists {
 		return nil, types.ErrDenomNotFound
 	}
 	if admin != msg.Sender {
 		return nil, types.ErrUnauthorized
 	}
-	if err := s.keeper.bankKeeper.MintCoins(sdk.WrapSDKContext(ctx), types.ModuleName, sdk.NewCoins(coin)); err != nil {
+	if err := s.keeper.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 		return nil, err
 	}
 	recipient := msg.MintTo
@@ -58,7 +80,7 @@ func (s msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMi
 	if err != nil {
 		return nil, err
 	}
-	if err := s.keeper.bankKeeper.SendCoinsFromModuleToAccount(sdk.WrapSDKContext(ctx), types.ModuleName, recipientAddr, sdk.NewCoins(coin)); err != nil {
+	if err := s.keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipientAddr, sdk.NewCoins(coin)); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -77,18 +99,24 @@ func (s msgServer) Burn(goCtx context.Context, msg *types.MsgBurn) (*types.MsgBu
 	if err != nil {
 		return nil, err
 	}
-	admin, exists := s.keeper.GetDenomAdmin(ctx, coin.Denom)
+	admin, exists, err := s.keeper.GetDenomAdmin(ctx, coin.Denom)
+	if err != nil {
+		return nil, err
+	}
 	if !exists {
 		return nil, types.ErrDenomNotFound
 	}
 	if admin != msg.Sender {
 		return nil, types.ErrUnauthorized
 	}
-	sender, _ := sdk.AccAddressFromBech32(msg.Sender)
-	if err := s.keeper.bankKeeper.SendCoinsFromAccountToModule(sdk.WrapSDKContext(ctx), sender, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
 		return nil, err
 	}
-	if err := s.keeper.bankKeeper.BurnCoins(sdk.WrapSDKContext(ctx), types.ModuleName, sdk.NewCoins(coin)); err != nil {
+	if err := s.keeper.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+		return nil, err
+	}
+	if err := s.keeper.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -102,14 +130,19 @@ func (s msgServer) Burn(goCtx context.Context, msg *types.MsgBurn) (*types.MsgBu
 
 func (s msgServer) ChangeAdmin(goCtx context.Context, msg *types.MsgChangeAdmin) (*types.MsgChangeAdminResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	admin, exists := s.keeper.GetDenomAdmin(ctx, msg.Denom)
+	admin, exists, err := s.keeper.GetDenomAdmin(ctx, msg.Denom)
+	if err != nil {
+		return nil, err
+	}
 	if !exists {
 		return nil, types.ErrDenomNotFound
 	}
 	if admin != msg.Sender {
 		return nil, types.ErrUnauthorized
 	}
-	s.keeper.SetDenomAdmin(ctx, msg.Denom, msg.NewAdmin)
+	if err := s.keeper.SetDenomAdmin(ctx, msg.Denom, msg.NewAdmin); err != nil {
+		return nil, err
+	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.ModuleName,
 		sdk.NewAttribute("old_admin", msg.Sender),
@@ -125,25 +158,33 @@ func (s msgServer) ForceTransfer(goCtx context.Context, msg *types.MsgForceTrans
 	if err != nil {
 		return nil, err
 	}
-	admin, exists := s.keeper.GetDenomAdmin(ctx, coin.Denom)
+	admin, exists, err := s.keeper.GetDenomAdmin(ctx, coin.Denom)
+	if err != nil {
+		return nil, err
+	}
 	if !exists {
 		return nil, types.ErrDenomNotFound
 	}
 	if admin != msg.Sender {
 		return nil, types.ErrUnauthorized
 	}
+
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
 	destAddr, err := sdk.AccAddressFromBech32(msg.DestAddr)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.keeper.bankKeeper.MintCoins(sdk.WrapSDKContext(ctx), types.ModuleName, sdk.NewCoins(coin)); err != nil {
+
+	if err := s.keeper.bankKeeper.SendCoins(ctx, senderAddr, destAddr, sdk.NewCoins(coin)); err != nil {
 		return nil, err
 	}
-	if err := s.keeper.bankKeeper.SendCoinsFromModuleToAccount(sdk.WrapSDKContext(ctx), types.ModuleName, destAddr, sdk.NewCoins(coin)); err != nil {
-		return nil, err
-	}
+
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.ModuleName,
+		sdk.NewAttribute("force_transfer_from", msg.Sender),
 		sdk.NewAttribute("force_transfer_to", msg.DestAddr),
 		sdk.NewAttribute("denom", coin.Denom),
 		sdk.NewAttribute("amount", coin.Amount.String()),

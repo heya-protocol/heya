@@ -20,7 +20,10 @@ func NewQuerier(keeper Keeper) Querier {
 
 func (q Querier) DenomAdmin(goCtx context.Context, req *types.QueryDenomAdminRequest) (*types.QueryDenomAdminResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	admin, exists := q.keeper.GetDenomAdmin(ctx, req.Denom)
+	admin, exists, err := q.keeper.GetDenomAdmin(ctx, req.Denom)
+	if err != nil {
+		return nil, err
+	}
 	if !exists {
 		return nil, types.ErrDenomNotFound
 	}

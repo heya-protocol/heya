@@ -46,21 +46,25 @@ func (AppModule) IsAppModule()        {}
 func (am AppModule) BeginBlock(ctx context.Context) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	total := am.bankKeeper.GetSupply(sdkCtx, "uheya")
-	if total.Amount.BigInt().Cmp(MaxSupply) >= 0 {
-		params, err := am.mintKeeper.Params.Get(sdkCtx)
-		if err != nil {
-			return err
-		}
-		if !params.InflationMax.IsZero() {
-			params.InflationMax = math.LegacyNewDec(0)
-			params.InflationMin = math.LegacyNewDec(0)
-			params.InflationRateChange = math.LegacyNewDec(0)
-			if err := am.mintKeeper.Params.Set(sdkCtx, params); err != nil {
-				return err
-			}
-			sdkCtx.Logger().Info("max supply 10B HEYA reached, inflation set to 0")
-		}
+	if total.Amount.BigInt().Cmp(MaxSupply) < 0 {
+		return nil
 	}
+
+	params, err := am.mintKeeper.Params.Get(sdkCtx)
+	if err != nil {
+		return err
+	}
+	if params.InflationMax.IsZero() {
+		return nil
+	}
+
+	params.InflationMax = math.LegacyNewDec(0)
+	params.InflationMin = math.LegacyNewDec(0)
+	params.InflationRateChange = math.LegacyNewDec(0)
+	if err := am.mintKeeper.Params.Set(sdkCtx, params); err != nil {
+		return err
+	}
+	sdkCtx.Logger().Info("max supply 10B HEYA reached, inflation set to 0")
 	return nil
 }
 

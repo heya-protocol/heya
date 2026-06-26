@@ -2,7 +2,7 @@ package types
 
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		DenomCreationFee: "1000" + "000000uheya",
+		DenomCreationFee: "1000000000uheya",
 		Denoms:           []*DenomAuthority{},
 	}
 }
