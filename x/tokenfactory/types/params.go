@@ -9,10 +9,12 @@ type Params struct {
 	DenomCreationFee sdk.Coin
 }
 
+var defaultParams = Params{
+	DenomCreationFee: sdk.NewCoin("uheya", sdkmath.NewInt(1_000_000_000)),
+}
+
 func DefaultParams() Params {
-	return Params{
-		DenomCreationFee: sdk.NewCoin("uheya", sdkmath.NewInt(1_000_000_000)),
-	}
+	return defaultParams
 }
 
 func (p Params) Validate() error {

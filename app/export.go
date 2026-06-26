@@ -33,7 +33,7 @@ func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedAddrs
 		return servertypes.ExportedApp{}, err
 	}
 
-	appState, err := json.MarshalIndent(genState, "", "  ")
+	appState, err := json.Marshal(genState)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
