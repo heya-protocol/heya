@@ -55,7 +55,7 @@ print_step "Configuring app.toml..."
 sed -i 's/^minimum-gas-prices = .*/minimum-gas-prices = "0.025uheya"/' ~/.heya/config/app.toml
 
 print_step "Copying genesis.json..."
-cp "$HEYA_DIR/genesis.json" ~/.heya/config/genesis.json
+cp "$HEYA_DIR/scripts/genesis.json" ~/.heya/config/genesis.json
 
 print_step "Systemd service..."
 cat > /etc/systemd/system/heyad.service <<EOF

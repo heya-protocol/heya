@@ -670,7 +670,8 @@
       "sequences": []
     },
     "tokenfactory": {
-      "params": {}
+      "denom_creation_fee": "1000000000uheya",
+      "denoms": []
     }
   },
   "consensus": {
