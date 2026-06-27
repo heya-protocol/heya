@@ -1,0 +1,44 @@
+syntax = "proto3";
+package heya.erc20.v1;
+
+option go_package = "heya/x/erc20/types";
+
+service Query {
+  rpc BalanceOf(QueryBalanceOfRequest) returns (QueryBalanceOfResponse);
+  rpc Allowance(QueryAllowanceRequest) returns (QueryAllowanceResponse);
+  rpc TotalSupply(QueryTotalSupplyRequest) returns (QueryTotalSupplyResponse);
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse);
+}
+
+message QueryBalanceOfRequest {
+  string owner = 1;
+  string denom = 2;
+}
+
+message QueryBalanceOfResponse {
+  string amount = 1;
+}
+
+message QueryAllowanceRequest {
+  string owner = 1;
+  string spender = 2;
+  string denom = 3;
+}
+
+message QueryAllowanceResponse {
+  string amount = 1;
+}
+
+message QueryTotalSupplyRequest {
+  string denom = 1;
+}
+
+message QueryTotalSupplyResponse {
+  string amount = 1;
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  string authority = 1;
+}

@@ -1,0 +1,72 @@
+syntax = "proto3";
+package heya.erc20.v1;
+
+import "cosmos/msg/v1/msg.proto";
+
+option go_package = "heya/x/erc20/types";
+
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+  rpc Transfer(MsgTransfer) returns (MsgTransferResponse);
+  rpc Approve(MsgApprove) returns (MsgApproveResponse);
+  rpc TransferFrom(MsgTransferFrom) returns (MsgTransferFromResponse);
+  rpc IncreaseAllowance(MsgIncreaseAllowance) returns (MsgIncreaseAllowanceResponse);
+  rpc DecreaseAllowance(MsgDecreaseAllowance) returns (MsgDecreaseAllowanceResponse);
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+}
+
+message MsgTransfer {
+  option (cosmos.msg.v1.signer) = "sender";
+  string sender = 1;
+  string to = 2;
+  string amount = 3;
+}
+
+message MsgTransferResponse {}
+
+message MsgApprove {
+  option (cosmos.msg.v1.signer) = "owner";
+  string owner = 1;
+  string spender = 2;
+  string amount = 3;
+}
+
+message MsgApproveResponse {}
+
+message MsgTransferFrom {
+  option (cosmos.msg.v1.signer) = "caller";
+  string caller = 1;
+  string from = 2;
+  string to = 3;
+  string amount = 4;
+}
+
+message MsgTransferFromResponse {}
+
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  string authority = 1;
+  string new_authority = 2;
+}
+
+message MsgUpdateParamsResponse {}
+
+message MsgIncreaseAllowance {
+  option (cosmos.msg.v1.signer) = "owner";
+  string owner = 1;
+  string spender = 2;
+  string denom = 3;
+  string amount = 4;
+}
+
+message MsgIncreaseAllowanceResponse {}
+
+message MsgDecreaseAllowance {
+  option (cosmos.msg.v1.signer) = "owner";
+  string owner = 1;
+  string spender = 2;
+  string denom = 3;
+  string amount = 4;
+}
+
+message MsgDecreaseAllowanceResponse {}
